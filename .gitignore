@@ -221,3 +221,10 @@ __marimo__/
 
 # excel-file
 ~$*
+
+# Local inputs and generated artifacts
+.DS_Store
+/data/local/*
+!/data/local/.gitkeep
+/outputs/*
+!/outputs/.gitkeep
