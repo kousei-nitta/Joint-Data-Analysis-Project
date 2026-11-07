@@ -13,8 +13,9 @@
 
 ## 検証の状態
 
-- ローカル：pandas/openpyxl/Plotly/pytestを使い架空データの読込・集計・HTML/CSVをテスト。
-- LinuxローカルのPythonは3.13で、正式指定の3.12.11/uv環境とは異なる。StreamlitとRuffもローカルにはないため、**GitHub Actionsの実行結果で確認が必要**。合格したチェックのみPR本文に記録する。
+- ローカル：pandas/openpyxl/Plotly/pytestを使い架空データの読込・集計・HTML/CSVをテスト。17件成功、Streamlit未導入のためUIテスト1件はローカルでskip。
+- GitHub Actions（Python 3.12.11 / uv 0.13.5）で **Ruff lint、format、環境検査、pytest 18件（UIスモーク含む）、HTML/CSV出力のすべてが成功**（コミット `7029850` 時点）。
+- 実装改善の履歴：不正xlsxのBadZipFile例外処理、テストのimport経路、Ruff整形を修正し再検証した。
 - 実Excelのデータ行と現行仕様の照合は未実施。既存Excelのシート名/列は `docs/plan.md` の記述に依拠する。
 
 ## 次に必要な人間の承認（Gate 2）
