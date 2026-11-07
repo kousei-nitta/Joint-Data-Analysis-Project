@@ -49,11 +49,7 @@ def main() -> None:
         st.dataframe(pd.DataFrame([item.as_dict() for item in error.issues]))
         st.stop()
 
-    choices = (
-        records[["product_id", "product_name"]]
-        .drop_duplicates()
-        .sort_values("product_id")
-    )
+    choices = records[["product_id", "product_name"]].drop_duplicates().sort_values("product_id")
     labels = {
         str(row.product_id): f"{row.product_name}（ID: {row.product_id}）"
         for row in choices.itertuples(index=False)

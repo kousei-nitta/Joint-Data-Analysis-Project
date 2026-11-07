@@ -46,10 +46,15 @@ def load_price_workbook(source: str | Path | BinaryIO) -> pd.DataFrame:
         if not isinstance(source, (str, Path)):
             source.seek(0)
         with pd.ExcelFile(source, engine="openpyxl") as book:
-            missing = [name for name in (HISTORY_SHEET, PRODUCT_SHEET) if name not in book.sheet_names]
+            missing = [
+                name for name in (HISTORY_SHEET, PRODUCT_SHEET) if name not in book.sheet_names
+            ]
             if missing:
                 raise WorkbookValidationError(
-                    [ValidationIssue(name, None, "シート名", "指定されたシートがありません") for name in missing]
+                    [
+                        ValidationIssue(name, None, "シート名", "指定されたシートがありません")
+                        for name in missing
+                    ]
                 )
             # dtype=object keeps text IDs such as '001' and lets validation reject numeric IDs.
             history = pd.read_excel(book, sheet_name=HISTORY_SHEET, dtype=object)

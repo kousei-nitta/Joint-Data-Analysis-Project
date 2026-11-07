@@ -111,7 +111,9 @@ def validate_frames(history: pd.DataFrame, products: pd.DataFrame) -> pd.DataFra
         name = record["商品名"]
         if identifier is None:
             issues.append(
-                ValidationIssue(PRODUCT_SHEET, excel_row, "商品ID", "文字列のIDが必要です（001など）")
+                ValidationIssue(
+                    PRODUCT_SHEET, excel_row, "商品ID", "文字列のIDが必要です（001など）"
+                )
             )
         if not isinstance(name, str) or not name.strip():
             issues.append(ValidationIssue(PRODUCT_SHEET, excel_row, "商品名", "商品名が空です"))
@@ -138,18 +140,26 @@ def validate_frames(history: pd.DataFrame, products: pd.DataFrame) -> pd.DataFra
         identifier = _text_id(record["商品ID"])
         amount = _price(record["価格"])
         if timestamp is None:
-            issues.append(ValidationIssue(HISTORY_SHEET, excel_row, "確認日", "有効な日付ではありません"))
+            issues.append(
+                ValidationIssue(HISTORY_SHEET, excel_row, "確認日", "有効な日付ではありません")
+            )
         if identifier is None:
             issues.append(
-                ValidationIssue(HISTORY_SHEET, excel_row, "商品ID", "文字列のIDが必要です（001など）")
+                ValidationIssue(
+                    HISTORY_SHEET, excel_row, "商品ID", "文字列のIDが必要です（001など）"
+                )
             )
         elif identifier not in product_rows:
             issues.append(
-                ValidationIssue(HISTORY_SHEET, excel_row, "商品ID", f"商品ID {identifier} はマスタ未登録です")
+                ValidationIssue(
+                    HISTORY_SHEET, excel_row, "商品ID", f"商品ID {identifier} はマスタ未登録です"
+                )
             )
         if amount is None:
             issues.append(
-                ValidationIssue(HISTORY_SHEET, excel_row, "価格", "0より大きい数値（日本円）を入力してください")
+                ValidationIssue(
+                    HISTORY_SHEET, excel_row, "価格", "0より大きい数値（日本円）を入力してください"
+                )
             )
         if identifier is not None and timestamp is not None:
             key = (identifier, timestamp)

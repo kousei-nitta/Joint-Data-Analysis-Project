@@ -24,10 +24,14 @@ def workbook_bytes(
     sheet = workbook.active
     sheet.title = "価格履歴"
     sheet.append(history_header or ["確認日", "商品ID", "価格", "備考"])
-    for row in history if history is not None else [
-        [datetime(2026, 1, 8), "001", 90000, None],
-        [datetime(2026, 1, 1), "001", 100000, "架空"],
-    ]:
+    for row in (
+        history
+        if history is not None
+        else [
+            [datetime(2026, 1, 8), "001", 90000, None],
+            [datetime(2026, 1, 1), "001", 100000, "架空"],
+        ]
+    ):
         sheet.append(row)
     if include_master:
         master = workbook.create_sheet("商品マスタ")
