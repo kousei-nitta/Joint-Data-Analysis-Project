@@ -51,3 +51,12 @@ mainへ直接pushしたり、レビュー前にマージしたりしません。
 Pythonやuvの更新は別タスクとして確認し、設定・手順・CIを揃えます。
 `.venv`、個人データ、生成物、認証情報はcommitしません。
 既に追跡されている `product_prices.xlsx` の変更はGitで共有されるため、差分を意識してください。
+
+## 価格分析MVP追加後のチェック
+
+```bash
+uv run --locked pytest -q
+uv run --locked python scripts/run_demo.py
+```
+
+データ契約を変更したPRでは、サンプルテストと`docs/context/DATA_CONTRACT.md`を併せて変更します。反復開発・承認ゲートは`docs/context/LOOP_ENGINEERING.md`、Windows/macOS別の手順は`docs/context/OS_SETUP.md`を参照してください。

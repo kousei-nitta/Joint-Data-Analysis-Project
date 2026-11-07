@@ -1,44 +1,41 @@
-# アーキテクチャ：現状と目標を分ける
+# アーキテクチャ（設計と実装状況）
 
-## AS-IS（2026-11-07時点のリポジトリ確認）
-- `product_prices.xlsx`：既存入力テンプレート。
-- `scripts/check_environment.py`：メモリ上で生成したExcelからの読込、商品ID、Plotly HTML出力の動作検査。
-- `pyproject.toml` / `uv.lock`：Python 3.12.11、uv 0.13.5、pandas、openpyxl、Plotly、Streamlit等の依存関係。
-- `.github/workflows/ci.yml`：環境・Ruffチェック。
-- `src/price_viewer/` と `tests/`：プレースホルダー。**分析機能・本番UI・自動収集は未実装**。
+## 今回の分析MVPブランチ（未マージ）
 
-## TO-BE（次のPR以降に段階的に実装する想定）
 ```text
-Excel（読み取り専用）/ 許諾済みデータ
-          |
-          v
-read_excel -> validate -> normalize -> analyze -> plot/report
-                 |                    |
-                 +--> 例外・行番号      +--> PNG/HTML/CSV（outputs/, Git管理外）
-                           |
-                       （任意）Streamlit ローカルUI
+実Excelまたは架空Excel（既存2シート）
+                |
+      io.load_price_workbook
+                |
+    validation.validate_frames --> 入力エラー（行番号・列名）
+                |
+    DataFrame（date, product_id, product_name, price_jpy, note, excel_row）
+                |
+      analysis.py（期間、前回比、サマリー）
+                |
+        charts.py（Plotlyグラフ）
+              /   \
+    Streamlit UI   HTML/CSV（ローカル）
 ```
 
-推奨する責務分割（**ディレクトリ案であり現存実装ではない**）：
-- `src/price_viewer/io.py`：Excelシート読込。入力ブックを保存しない。
-- `src/price_viewer/validation.py`：必須列、日付、金額、ID、重複の検査。
-- `src/price_viewer/analysis.py`：前回比、期間変化率、欠損管理。
-- `src/price_viewer/charts.py`：グラフ/レポート生成。
-- `src/price_viewer/app.py`：任意のStreamlit表示。業務ロジックを置かない。
-- `tests/`：openpyxlで作る架空データと期待値による単体テスト。
+## ファイル責務
 
-## データ境界
-- Excelは入力の正本。原本の上書き禁止。変換後のDataFrameは派生データ。
-- `data/local/`：個人のコピー、`outputs/`：生成物。いずれも原則Git追跡外。
-- データ取得元のライセンス・商用利用条件・証拠を記録してから収集処理を追加する。
-- 外部API・LLMによる文章生成は後段の任意機能。数値の計算・検証は再現可能なPythonの処理に置く。
+- `product_prices.xlsx`：入力担当が更新する既存テンプレート。分析コードは読み取り専用。
+- `src/price_viewer/io.py`：ファイル検査、シート読込。
+- `src/price_viewer/validation.py`：日付・商品ID・価格・重複などを検証し、元Excel行番号付きの問題を返す。
+- `src/price_viewer/analysis.py`：観測値の変化率、期間で絞り込んだ統計量。
+- `src/price_viewer/charts.py`：Plotlyグラフの構築。
+- `src/price_viewer/demo_data.py`：**架空データのみ**のメモリ内Excel生成。
+- `src/price_viewer/app.py`：ローカルStreamlit UI。数値計算ロジックを持たない。
+- `scripts/run_demo.py`：架空Excel→HTML/CSVのCLI動作確認。
+- `scripts/analyze_workbook.py`：入力済みExcelから商品別HTML/CSVを出力するバッチ処理（ファイル名は商品IDのハッシュで安全化）。
+- `tests/`：データ契約、演算、グラフ、UIスモークテスト。
+- `data/local/`、`outputs/`：Git追跡外。実データや成果物を公開コミットしない。
 
-## 実装順
-1. `docs/context/DATA_CONTRACT.md` に沿った読込と検証。
-2. ダミーデータの正常系・異常系テスト。
-3. 価格変化率と折れ線グラフ。ゼロ割り・欠損・重複の取り扱いを明示する。
-4. ローカルUIまたは記事用出力（目的に応じて選択）。
-5. データ量と観測期間が整ってから異常検知・先行性の統計検証を設計する。
+## スコープ外
 
-## 品質上の制約
-価格の下落は中国景気悪化の証明ではない。為替、世界相場、新機種発売、状態差、店舗在庫、掲載価格と成約価格の違いなどを取り除く必要がある。複数商品の重み付けや独自指数は未設計。
+データベース、スクレイパー、中国の景気予測モデル、為替補正、店舗比較、認証・一般公開、商用配信は未実装。先行性の研究は入力データの信頼性を確保してから着手する。
+
+## OSと再現性
+
+Python 3.12.11 / uv 0.13.5 / `uv.lock` が前提。画面は127.0.0.1ローカル起動。Mac/Windowsの具体的な操作は `OS_SETUP.md`。AI間共有の運用ルールは `AGENTS.md` と `LOOP_ENGINEERING.md`。

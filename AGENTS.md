@@ -36,3 +36,8 @@
 
 ## 作業の引き継ぎ
 別のAIに渡す際は、`docs/context/HANDOFF_TEMPLATE.md` をコピーして対象タスクごとに埋める。会話を引き継ぐ前提にせず、リポジトリの相対パス、コミット/ブランチ、実行コマンド、未完了事項を渡す。
+
+## 価格分析MVPの反復開発・OS差分
+- 価格は当面JPY。既存の`product_prices.xlsx`は入力担当者の作業が完了するまで原本不変。
+- `docs/context/LOOP_ENGINEERING.md`のPDCA・承認ゲートを守り、テスト失敗時は同じ作業ブランチで改善と再テストを行う。
+- MacとWindowsの実行手順は`docs/context/OS_SETUP.md`に分けて記載する。実装前に`docs/context/ANALYSIS_MVP_SPEC.md`を確認。

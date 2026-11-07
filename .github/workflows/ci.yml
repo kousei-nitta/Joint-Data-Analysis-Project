@@ -1,4 +1,4 @@
-name: Foundation checks
+name: Excel price analysis checks
 
 on:
   pull_request:
@@ -31,3 +31,11 @@ jobs:
         run: uv run --locked ruff format --check .
       - name: Check Excel and plotting environment
         run: uv run --locked python scripts/check_environment.py
+      - name: Run unit and UI smoke tests
+        run: uv run --locked pytest -q
+      - name: Generate demo output from synthetic Excel
+        run: uv run --locked python scripts/run_demo.py --output-dir outputs/ci-demo
+      - name: Confirm generated files
+        run: |
+          test -f outputs/ci-demo/demo_001.html
+          test -f outputs/ci-demo/demo_001.csv
