@@ -32,3 +32,7 @@
 
 ## コンテキストの更新ルール
 コード仕様が変われば `DATA_CONTRACT.md`・`ARCHITECTURE.md`・`CURRENT_STATUS.md` を更新。重要判断はADRで採否と理由を残す。週次または節目に `CURRENT_STATUS.md` を更新して「現在地」を共有する。
+
+## 自律的な検証と人間の承認
+
+セッション内でAIが反復的にテスト・改善する詳細は[LOOP_ENGINEERING.md](LOOP_ENGINEERING.md)を参照。自動テスト合格はmainマージの承認を代替しない。入力担当者のExcel更新も承認後に別PRで検証する。OS別手順は[OS_SETUP.md](OS_SETUP.md)。

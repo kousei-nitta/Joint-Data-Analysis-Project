@@ -1,71 +1,52 @@
 # Joint-Data-Analysis-Project
 
-Excelに記録した商品価格を読み込み、ブラウザで価格推移を確認する試作品です。
-**現在は開発基盤の準備段階です。価格分析アプリ本体はまだ実装していません。**
+**Excelに手入力した商品価格をPythonで検証・分析し、日付別の価格推移をグラフにするローカルデモ**です。現段階では中国景気の予測AIではありません。分析ロジックは将来的なオルタナティブ指標研究の基盤になります。
 
-## 使用するもの
+## 今すぐ試す
 
-| 用途 | 採用 |
-| --- | --- |
-| Python | 3.12.11（既存のpyenvを利用） |
-| 仮想環境・依存関係管理 | uv 0.13.5、`.venv`、`uv.lock` |
-| Excel読み込み・加工 | pandas、openpyxl |
-| ブラウザ画面・操作できるグラフ | Streamlit、Plotly |
-| 開発チェック | Ruff、pytest（アプリ実装時にテストを追加） |
-
-## macOSで準備
-
-Python 3.12.11がpyenvにインストール済みであることを前提にします。
-uv未導入の場合は `brew install uv`（このリポジトリで使う版は0.13.5）。
-Homebrewの提供版が異なる場合は[uv公式のバージョン指定インストール](https://docs.astral.sh/uv/getting-started/installation/)を利用してください。
+`uv` 0.13.5 と Python 3.12.11 を使用します。Windows と macOS の詳しい手順は [OS別セットアップ](docs/context/OS_SETUP.md) を参照してください。
 
 ```bash
-cd /Users/kousei/Joint-Data-Analysis-Project
-uv sync --locked --python "$(pyenv root)/versions/3.12.11/bin/python"
+uv python install 3.12.11
+uv sync --locked
+uv run --locked python scripts/run_demo.py
+uv run --locked streamlit run src/price_viewer/app.py
+```
+
+実データを画面なしでグラフ・CSVに変換する場合（Excelが入力済みの場合のみ）：
+
+```bash
+uv run --locked python scripts/analyze_workbook.py --excel product_prices.xlsx
+```
+
+`http://127.0.0.1:8501` を開くと、まず**架空データ**の価格推移グラフが表示されます。データ入力担当者のExcel完成後には「Excelをアップロード」または「リポジトリのExcel」から読み込めます。xlsx原本への書き込みは行いません。
+
+## できること
+
+- `product_prices.xlsx` の「価格履歴」「商品マスタ」の2シートを読み取り、商品IDを文字列のまま照合。
+- 空行の無視、欠落・不正日付・不正価格・未登録商品ID・重複の**行番号付き**エラー表示。
+- 商品と期間の選択、観測価格の折れ線グラフ、前回比（円・%）と期間の変化率。
+- グラフをHTML、分析データをCSVとしてローカル保存。`outputs/` はGit追跡外。
+- CIで架空のExcelから分析結果までをテスト。実在の商品・取引価格はテストに使用しません。
+
+## 試験運用の制約
+
+- 金額は当面**日本円（JPY）**。税の扱い、商品状態、店舗の識別は現在のExcel列に存在せず未確定。
+- 同一商品ID・同じ日の複数レコードは店舗差を識別できないためエラー。勝手な平均・値の補完をしません。
+- デモは架空データであり、中国景気との因果性・先行指標としての精度は未検証。
+- 新しい商品価格がGitHubにpushされた後、**別PRで実Excelとの整合性を確認する**予定です。
+
+## 開発・テスト
+
+```bash
 uv run --locked python scripts/check_environment.py
+uv run --locked pytest -q
+uv run --locked ruff check .
+uv run --locked ruff format --check .
 ```
 
-他の人はcloneしたフォルダへ移動してください。`uv sync`が`.venv`を作成し、
-固定済みのライブラリをインストールします。`uv run`を使えば毎回の有効化は不要です。
-エディタのPythonは `.venv/bin/python` を選びます。
+対象コード: `src/price_viewer/`、出力デモ: `scripts/run_demo.py`、テスト: `tests/`。既存の `product_prices.xlsx` は更新しません。
 
-## ブラウザ表示だけ試す
+## AIと人間が共通の設計履歴を使う
 
-```bash
-uv run --locked streamlit hello
-```
-
-これはStreamlit付属のデモです。`http://127.0.0.1:8501` で開き、終了は `Ctrl+C`。
-価格分析アプリの起動コマンドは、アプリ実装時に追加します。
-
-## フォルダ構成
-
-```text
-product_prices.xlsx       # 既存の共有Excel。位置・内容は維持
-src/price_viewer/         # 次の段階でアプリ本体を配置
-tests/                    # 次の段階でアプリのテストを配置
-scripts/                  # 開発環境の確認
-data/local/               # 個人用Excelのコピーなど（Git管理外）
-outputs/                  # 生成するグラフ等（Git管理外）
-docs/plan.md              # 設計案・入力仕様・次の実装範囲
-.github/                  # PRテンプレート・自動チェック
-pyproject.toml / uv.lock  # 必要ライブラリ・固定されたバージョン
-```
-
-入力は当面`.xlsx`を使います。複数シート、入力規則、商品マスタを保持できるためです。
-CSVは今後の外部連携・出力が必要になった段階で追加します。
-
-開発の進め方は [CONTRIBUTING.md](CONTRIBUTING.md)、
-実装前に確認する内容は [docs/plan.md](docs/plan.md) を参照してください。
-
-## 複数AI・人間で作業を引き継ぐ
-
-ChatGPT・Claude・ローカルLLM等で**同じ開発方針**を使うため、まず [AGENTS.md](AGENTS.md) を読んでください。会話の記憶ではなく、リポジトリに残った仕様・ADR・PRを共有します。
-
-- [プロジェクトの目的](docs/context/PROJECT_BRIEF.md)
-- [現状と設計](docs/context/ARCHITECTURE.md)、[入力データ契約](docs/context/DATA_CONTRACT.md)
-- [次の価格分析MVP仕様](docs/context/ANALYSIS_MVP_SPEC.md)
-- [共同開発ルール](docs/context/WORKFLOW.md)、[現在地](docs/context/CURRENT_STATUS.md)
-- [作業引き継ぎテンプレート](docs/context/HANDOFF_TEMPLATE.md)、[設計判断記録](docs/adr/)
-
-現状のコードは**価格分析アプリ本体がまだ未実装**です。今回追加する文書はAI共通コンテキスト基盤であり、Excelや分析コードの変更ではありません。
+まず [AGENTS.md](AGENTS.md) を読み、[共有設計](docs/context/ARCHITECTURE.md)、[Excelデータ契約](docs/context/DATA_CONTRACT.md)、[分析MVP仕様](docs/context/ANALYSIS_MVP_SPEC.md) を参照してください。[反復開発と承認ゲート](docs/context/LOOP_ENGINEERING.md)、[現在地](docs/context/CURRENT_STATUS.md)、[作業引き継ぎ](docs/context/HANDOFF_TEMPLATE.md)、[判断の履歴](docs/adr/) によって、ChatGPT・Claude・ローカルLLMに依存せず作業を引き継げます。[貢献ガイド](CONTRIBUTING.md) も参照してください。
