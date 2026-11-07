@@ -57,3 +57,15 @@ CSVは今後の外部連携・出力が必要になった段階で追加しま�
 
 開発の進め方は [CONTRIBUTING.md](CONTRIBUTING.md)、
 実装前に確認する内容は [docs/plan.md](docs/plan.md) を参照してください。
+
+## 複数AI・人間で作業を引き継ぐ
+
+ChatGPT・Claude・ローカルLLM等で**同じ開発方針**を使うため、まず [AGENTS.md](AGENTS.md) を読んでください。会話の記憶ではなく、リポジトリに残った仕様・ADR・PRを共有します。
+
+- [プロジェクトの目的](docs/context/PROJECT_BRIEF.md)
+- [現状と設計](docs/context/ARCHITECTURE.md)、[入力データ契約](docs/context/DATA_CONTRACT.md)
+- [次の価格分析MVP仕様](docs/context/ANALYSIS_MVP_SPEC.md)
+- [共同開発ルール](docs/context/WORKFLOW.md)、[現在地](docs/context/CURRENT_STATUS.md)
+- [作業引き継ぎテンプレート](docs/context/HANDOFF_TEMPLATE.md)、[設計判断記録](docs/adr/)
+
+現状のコードは**価格分析アプリ本体がまだ未実装**です。今回追加する文書はAI共通コンテキスト基盤であり、Excelや分析コードの変更ではありません。
