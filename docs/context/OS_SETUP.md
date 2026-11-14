@@ -27,7 +27,7 @@ uv run --locked python scripts/analyze_sheet.py
 uv run --locked streamlit run src/price_viewer/app.py
 ```
 
-ブラウザ `http://127.0.0.1:8501` →「非公開Googleスプレッドシート」を選択。次回新しいPowerShellを開いた場合は環境変数を再設定してください。永久環境変数に秘密鍵そのものを入れず、**ファイルへのパス**を指定します。
+ブラウザ `http://127.0.0.1:8501` →「非公開Googleスプレッドシート」を選択。次回新しいPowerShellを開いた場合は `GOOGLE_SHEET_ID` を再設定してください。**Google認証の秘密鍵JSONを使用したり、環境変数に鍵ファイルのパスを設定したりする必要はありません。** ADCのログイン情報はローカルのGoogle Cloud CLI管理場所へ保存されます。
 
 VS Codeインタープリター：`.venv\Scripts\python.exe`（Ctrl+Shift+P → Python: Select Interpreter）。
 
