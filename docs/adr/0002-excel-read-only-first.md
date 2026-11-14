@@ -1,6 +1,6 @@
 # ADR 0002: Excel原本を保持し、検証可能な分析から始める
 
-- Status: Proposed（このPRのレビュー・マージでAcceptedとする）
+- Status: Accepted（2026-11-14提案のADR 0004でExcel入力部分を置換予定）
 - Date: 2026-11-07
 
 ## Context

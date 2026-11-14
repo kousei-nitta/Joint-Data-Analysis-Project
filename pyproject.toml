@@ -1,11 +1,12 @@
 [project]
 name = "product-price-viewer"
-version = "0.1.0"
-description = "Excelの商品価格をブラウザで分析する試作品（開発基盤）"
+version = "0.2.0"
+description = "非公開Googleスプレッドシートから商品価格を読み取り、分析する試作品"
 readme = "README.md"
 requires-python = "==3.12.11"
 dependencies = [
-    "openpyxl>=3.1.5",
+    "google-auth>=2.35.0,<3",
+    "requests>=2.32.0,<3",
     "pandas>=3.1.0",
     "plotly>=7.1.0",
     "streamlit>=1.66.1",

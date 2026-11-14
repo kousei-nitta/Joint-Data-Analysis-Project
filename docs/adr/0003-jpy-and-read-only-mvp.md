@@ -1,6 +1,6 @@
 # ADR 0003: 初期価格は日本円・既存Excel読み取り専用で分析
 
-- Status: Proposed（本PR承認・マージ時にAccepted扱い）
+- Status: Accepted（JPY方針は維持、Excel入力部分はADR 0004で置換予定）
 - Date: 2026-11-07
 
 ## Context

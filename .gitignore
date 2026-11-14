@@ -228,3 +228,14 @@ __marimo__/
 !/data/local/.gitkeep
 /outputs/*
 !/outputs/.gitkeep
+
+# Google Sheets migration: do not commit private sheet values or credentials
+/product_prices.xlsx
+/credentials/
+/google-keys/
+/google-credentials.json
+/credentials.json
+/token.json
+*service-account*.json
+.env.*
+!.env.example

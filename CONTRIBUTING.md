@@ -29,8 +29,7 @@ git diff --check
 git status
 ```
 
-アプリ実装後は意味のあるテストを `tests/` に追加し、`uv run --locked pytest` をCIにも追加します。
-現段階ではテストが未作成のため、pytestの実行は必須にしていません。
+Google Sheets入力・分析にはテストが実装済みです。`uv run --locked pytest -q`を必ず実行し、CIでGoogle認証情報なしのモックテストを実行します。
 
 ```bash
 git add <今回変更したファイル>
@@ -50,7 +49,7 @@ mainへ直接pushしたり、レビュー前にマージしたりしません。
 `pyproject.toml` と `uv.lock` を同じPRで更新します。
 Pythonやuvの更新は別タスクとして確認し、設定・手順・CIを揃えます。
 `.venv`、個人データ、生成物、認証情報はcommitしません。
-既に追跡されている `product_prices.xlsx` の変更はGitで共有されるため、差分を意識してください。
+価格データは非公開Googleシートで共同編集し、GitHubへpushしません。認証JSON・実測データ・シートIDもcommitしないでください。
 
 ## 価格分析MVP追加後のチェック
 
@@ -60,3 +59,9 @@ uv run --locked python scripts/run_demo.py
 ```
 
 データ契約を変更したPRでは、サンプルテストと`docs/context/DATA_CONTRACT.md`を併せて変更します。反復開発・承認ゲートは`docs/context/LOOP_ENGINEERING.md`、Windows/macOS別の手順は`docs/context/OS_SETUP.md`を参照してください。
+
+## Google Sheets as the data source
+- Share the private Google Sheet only with named editors and the service account as Viewer; there is no need to commit or push data updates.
+- Follow `docs/context/GOOGLE_SHEETS_SETUP.md` for authentication and `docs/context/OS_SETUP.md` for the separate OS commands.
+- Run `uv run --locked pytest -q` and `uv run --locked python scripts/run_demo.py` offline; these never require real Google credentials.
+- Changes to data format, API quota or billing assumptions must be reviewed in the PR and documented in an ADR.
