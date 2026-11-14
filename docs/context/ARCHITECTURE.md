@@ -8,7 +8,7 @@
    └── 商品マスタ A:B
         │ API v4 values.batchGet（1回・読み取り専用）
         ▼
-Google ADC / spreadsheets.readonly（サービスアカウントを閲覧者として共有）
+Google ADC / spreadsheets.readonly（ローカル: SAなりすまし / 本番Cloud: 付属SA）
         ▼
 src/price_viewer/sheets.py（認証・API・値→DataFrame）
         ▼
@@ -21,7 +21,7 @@ src/price_viewer/charts.py（Plotly）
        └── scripts/analyze_sheet.py（ローカルHTML/CSV）
 ```
 
-`src/price_viewer/demo_data.py`は同じ入力規約を使う**架空のインメモリデータ**を提供する。CI/testsはGoogleにアクセスしない。`GOOGLE_SHEET_ID` は環境変数、認証はADC（サービスアカウントJSONをGitに置かない）。UIは現段階で`127.0.0.1`にのみバインドする。
+`src/price_viewer/demo_data.py`は同じ入力規約を使う**架空のインメモリデータ**を提供する。CI/testsはGoogleにアクセスしない。`GOOGLE_SHEET_ID` は環境変数、認証はADC（長期サービスアカウント秘密鍵JSONを使わない）。UIは現段階で`127.0.0.1`にのみバインドする。
 
 ## 料金とセキュリティ
 
@@ -33,3 +33,5 @@ src/price_viewer/charts.py（Plotly）
 ## 次段階で検討
 
 店舗、価格種別、型番、出典、過去履歴、為替などを追加して複数業者の同日観測を行う。追加時はデータ契約・テスト・API範囲・入力量を別PRでレビュー。将来の中国景気推定モデルは独立した分析モジュールとして構築する。
+
+認証方式の選択、増員時の権限剥奪、本番環境/WIFは[KEYLESS_AUTH.md](KEYLESS_AUTH.md)を参照。

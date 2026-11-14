@@ -4,7 +4,7 @@
 
 - Google Sheets APIの**標準利用は追加料金なし**。読み取りはGoogle公式掲載の標準値で「毎分300件/プロジェクト」「毎分60件/ユーザー/プロジェクト」。実際の割り当てはプロジェクトのGoogle Cloud Consoleで確認する。
 - Googleは**2026年後半に標準枠を超えるAPI利用に課金を導入する予定**と説明しているため、将来も無料とは保証できない。料金プランの新情報・上限変更は定期確認する。
-- 本実装は2シートを**1回のbatchGet**で読み取り、画面は5分キャッシュ、429時のみ最大2回再試行。API回数をむやみに増やさない。料金回避のため、現段階では**Google Cloud課金を有効にしない**方針。利用可能なサービス・クォータは実際のプロジェクトで要確認。
+- 本実装は2シートを**1回のbatchGet**で読み取り、画面は5分キャッシュ、429時のみ最大2回再試行。API回数をむやみに増やさない。料金回避のため、現段階では**Google Cloud課金を有効にしない**方針。キーレス認証のためIAM Credentials APIの有効化が必要。利用可能なサービス・クォータは実際のプロジェクトで要確認。
 - 無料枠は「無制限」という意味ではない。API以外（Cloud Run、Cloud Storage、LLM API等）は別料金になり得る。
 
 公式資料：
@@ -31,26 +31,29 @@
 
 公式：[Google Workspace認証情報の作成・ファイル単位共有](https://developers.google.com/workspace/guides/create-credentials)
 
-## 3. 開発PCのGoogle認証を用意する
+## 3. 開発者のキーレス認証（長期秘密鍵JSONは作らない）
 
-Googleは長期有効なサービスアカウント秘密鍵をセキュリティ上推奨していません。可能ならキーレス（サービスアカウントのなりすまし・Google CloudのWorkload Identity等）を採用してください。初期の2人ローカル開発で鍵JSONを選ぶ場合は、漏洩を防いでください。
+**チーム標準は Google Cloud CLIによる「サービスアカウントのなりすまし＋ADC」です。** 公式案内ではキーJSONより安全で、2人から人数が増えても各人のIAM権限を個別に剥奪できます。
 
-1. Google Cloud Console →「IAMと管理 → サービス アカウント」→作成済みアカウント→「キー」→「鍵を追加」→「新しい鍵を作成」→ **JSON** を選んでダウンロード（組織ポリシーで作成が禁止なら、無理に回避せずキーレス認証へ切り替える）。
-2. JSONは**リポジトリの外**（自分のユーザーディレクトリ下のアクセス制限されたフォルダ）へ移動。公開リポジトリ、コミット、Issues、PR、チャットに添付しない。
-3. 2人へ同じJSONをチャット送信しない。可能なら個別のサービスアカウントを発行し、同じシートに各アカウントを閲覧者として共有する。
-4. PCの環境変数 `GOOGLE_APPLICATION_CREDENTIALS` と `GOOGLE_SHEET_ID` を設定。OS別のコマンドは [OS_SETUP.md](OS_SETUP.md) を参照。
-5. シートIDはURL中の `/d/` と `/edit` の間にある英数字・ `_` ・ `-` の文字列。フルURLではなくIDのみを設定。
-6. 不要になったJSONキーはGoogle Cloudで**無効化・削除**する。失くした場合もすぐにキーを失効させ、再発行する。
+まず[キーレス認証の詳細と公式出典](KEYLESS_AUTH.md)を参照してください。
+
+1. 管理者はGoogle Cloudで **IAM Service Account Credentials API** を有効化（Sheets APIに加えて必要）。
+2. 対象のサービスアカウント自体の「権限」で、開発者個人のGoogleアカウントに **サービス アカウント トークン作成者**（`roles/iam.serviceAccountTokenCreator`）を付与。**プロジェクト全体への付与は避ける。**
+3. 秘密鍵JSONの作成は行わない。サービスアカウントは非公開シートで**閲覧者**に設定し、入力担当者は別途**編集者**に設定。
+4. 各人のPCに[Google Cloud CLI](https://cloud.google.com/sdk/docs/install)をインストールし、各自で `gcloud auth login` および `gcloud auth application-default login --impersonate-service-account=SERVICE_ACCOUNT_EMAIL` を実行。
+5. `GOOGLE_APPLICATION_CREDENTIALS` に古いサービスアカウント鍵JSONを設定していた場合は**解除**する（この環境変数はローカルADCより優先される）。シートIDだけ `GOOGLE_SHEET_ID` で設定。
+
+[Windows/macOS別の操作コマンド](OS_SETUP.md)を使用。PC上のADCには開発者本人の認証情報が保存されるので、個人別OSアカウントで安全に保護すること。ログイン情報や認証ファイルをGitHubに入れない。
 
 ## 4. 動作確認と権限
 
 - Google認証なしでも `uv run --locked python scripts/run_demo.py` は動作する。
 - 設定後に `uv run --locked python scripts/analyze_sheet.py` を実行し、`outputs/analysis/` にHTML/CSVが作成されたらAPIの読取成功。
-- `403`：サービスアカウントへの閲覧権限がない、またはAPI未有効化。
+- `403`：非公開シートのSA閲覧権限、SA単位のToken Creator権限、Sheets / IAM Credentials APIの有効化を確認。
 - `404`：スプレッドシートIDやアクセス権を確認。
 - `400`：シート名 `価格履歴`・`商品マスタ` と列ヘッダーを確認。
 - `429`：利用上限。コードは少数の再試行後停止する（無限リクエストしない）。
-- 問題が出てもJSON秘密鍵やAPIのAuthorizationヘッダーをPRに貼らない。
+- 問題が出てもADC認証情報・トークン・AuthorizationヘッダーをPRに貼らない。
 
 ## 5. 課金を防ぐチェック
 

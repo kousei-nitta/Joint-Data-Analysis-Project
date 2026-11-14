@@ -9,6 +9,7 @@ from collections.abc import Callable, Mapping
 from typing import Any
 
 import pandas as pd
+from google.auth.exceptions import RefreshError
 
 from price_viewer.validation import (
     HISTORY_SHEET,
@@ -35,6 +36,7 @@ def _authorized_session() -> Any:
         import google.auth
         from google.auth.exceptions import DefaultCredentialsError
         from google.auth.transport.requests import AuthorizedSession
+        from google.oauth2 import service_account
     except ImportError as error:
         raise SheetAccessError(
             "google-authが不足しています。uv sync --lockedを実行してください"
@@ -44,8 +46,14 @@ def _authorized_session() -> Any:
         credentials, _ = google.auth.default(scopes=[READ_ONLY_SCOPE])
     except DefaultCredentialsError as error:
         raise SheetAccessError(
-            "Google認証情報が見つかりません。GOOGLE_APPLICATION_CREDENTIALSの設定を確認してください"
+            "Google認証情報がありません。Google Cloud CLIでサービスアカウントのなりすまし（ADC）を設定してください。docs/context/KEYLESS_AUTH.md参照"
         ) from error
+    if isinstance(credentials, service_account.Credentials):
+        raise SheetAccessError(
+            "長期有効なサービスアカウント秘密鍵JSONは使用できません。"
+            "Google Cloud CLIのキーレスADC（なりすまし）に切り替えてください。"
+            " docs/context/KEYLESS_AUTH.md参照"
+        )
     return AuthorizedSession(credentials)
 
 
@@ -111,6 +119,11 @@ def load_price_sheet(
     for attempt in range(MAX_RETRIES + 1):
         try:
             response = client.get(url, params=params, timeout=20)
+        except RefreshError as error:
+            raise SheetAccessError(
+                "Googleの認証を更新できません。IAM Service Account Credentials APIの有効化、"
+                "サービスアカウント単位のToken Creator権限、ADC再ログインを確認してください。"
+            ) from error
         except Exception as error:
             # Do not include a secret-bearing exception's request headers/body.
             raise SheetAccessError(
@@ -130,7 +143,7 @@ def load_price_sheet(
             continue
         if status in (401, 403):
             raise SheetAccessError(
-                "Google認証または閲覧権限が不足しています。サービスアカウントを閲覧者として共有してください"
+                "Google認証または閲覧権限が不足しています。サービスアカウントの閲覧者共有とキーレスADCの設定を確認してください"
             )
         if status == 404:
             raise SheetAccessError(
