@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import pytest
+from google.auth.exceptions import RefreshError
 
 from price_viewer.analysis import summarize_prices
 from price_viewer.sheets import SheetAccessError, load_price_sheet, parse_batch_values
@@ -141,3 +142,52 @@ def test_bad_api_payload_raises_clear_error():
         parse_batch_values({"valueRanges": []})
     with pytest.raises(SheetAccessError):
         load_price_sheet(ID, session=FakeSession([Response(200, [])]))
+
+
+def test_impersonation_token_refresh_error_is_actionable():
+    class ExpiredSession:
+        def get(self, *_args, **_kwargs):
+            raise RefreshError("do not echo credential details")
+
+    with pytest.raises(SheetAccessError, match="Token Creator") as caught:
+        load_price_sheet(ID, session=ExpiredSession())
+
+    assert "do not echo credential details" not in str(caught.value)
+
+
+def test_authorized_session_refuses_long_lived_service_account_keys(monkeypatch):
+    """An accidental GOOGLE_APPLICATION_CREDENTIALS service-account key must not be used."""
+    import google.auth
+    from google.oauth2 import service_account
+
+    from price_viewer.sheets import _authorized_session
+
+    # No signing material is created; this is only an isinstance guard test.
+    fake_key = object.__new__(service_account.Credentials)
+    monkeypatch.setattr(google.auth, "default", lambda **kwargs: (fake_key, "test-project"))
+    with pytest.raises(SheetAccessError, match="秘密鍵JSON"):
+        _authorized_session()
+
+
+def test_authorized_session_uses_readonly_scope_with_keyless_credentials(monkeypatch):
+    import google.auth
+    from google.auth.transport import requests as auth_requests
+
+    from price_viewer.sheets import READ_ONLY_SCOPE, _authorized_session
+
+    captured = {}
+    credentials = object()
+
+    def fake_default(*, scopes):
+        captured["scopes"] = scopes
+        return credentials, "test-project"
+
+    def fake_authorized_session(value):
+        captured["credential"] = value
+        return "authenticated fake session"
+
+    monkeypatch.setattr(google.auth, "default", fake_default)
+    monkeypatch.setattr(auth_requests, "AuthorizedSession", fake_authorized_session)
+
+    assert _authorized_session() == "authenticated fake session"
+    assert captured == {"scopes": [READ_ONLY_SCOPE], "credential": credentials}
