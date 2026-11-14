@@ -33,8 +33,8 @@ def _authorized_session() -> Any:
     """Use Application Default Credentials; secrets never enter the source tree."""
     try:
         import google.auth
-        from google.auth.transport.requests import AuthorizedSession
         from google.auth.exceptions import DefaultCredentialsError
+        from google.auth.transport.requests import AuthorizedSession
     except ImportError as error:
         raise SheetAccessError("google-authが不足しています。uv sync --lockedを実行してください") from error
 

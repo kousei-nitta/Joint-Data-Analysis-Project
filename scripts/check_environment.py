@@ -8,8 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from price_viewer.analysis import summarize_prices  # noqa: E402
-from price_viewer.demo_data import make_demo_records  # noqa: E402
 from price_viewer.charts import price_line_chart  # noqa: E402
+from price_viewer.demo_data import make_demo_records  # noqa: E402
 
 
 def main() -> None:
