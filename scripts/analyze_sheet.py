@@ -39,7 +39,9 @@ def analyze_sheet(spreadsheet_id: str | None, output_dir: Path) -> list[Path]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="非公開Googleスプレッドシートから価格推移HTMLとCSVを作成")
+    parser = argparse.ArgumentParser(
+        description="非公開Googleスプレッドシートから価格推移HTMLとCSVを作成"
+    )
     parser.add_argument("--spreadsheet-id", default=None, help="省略時は環境変数GOOGLE_SHEET_ID")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "outputs" / "analysis")
     args = parser.parse_args()

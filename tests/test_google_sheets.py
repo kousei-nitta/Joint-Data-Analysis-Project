@@ -25,7 +25,11 @@ def payload(history=None, products=None):
                     ["2026/01/01", "001", 100000, "架空"],
                 ]
             },
-            {"values": products if products is not None else [["商品ID", "商品名"], ["001", "架空商品A"]]},
+            {
+                "values": products
+                if products is not None
+                else [["商品ID", "商品名"], ["001", "架空商品A"]]
+            },
         ]
     }
 
@@ -78,20 +82,28 @@ def test_trailing_api_cells_are_padded_and_empty_rows_skipped():
 @pytest.mark.parametrize(
     "history,products,bad_column,bad_row",
     [
-        ([['確認日', '商品ID', '備考'], ['2026/01/01', '001', 'memo']], None, '価格', None),
-        ([['確認日', '商品ID', '価格'], ['2026/01/01', 1, 10]], None, '商品ID', 2),
-        ([['確認日', '商品ID', '価格'], ['2026/01/01', '001', '10,000']], None, '価格', 2),
-        ([['確認日', '商品ID', '価格'], ['2026/01/01', '001', 0]], None, '価格', 2),
-        ([['確認日', '商品ID', '価格'], ['2026/01/01', '001', 10], ['2026/01/01', '001', 11]], None, '確認日・商品ID', 3),
-        ([['確認日', '商品ID', '価格'], ['wrong date', '001', 10]], None, '確認日', 2),
-        (None, [['商品ID', '商品名'], ['001', 'A'], ['001', 'B']], '商品ID', 3),
+        ([["確認日", "商品ID", "備考"], ["2026/01/01", "001", "memo"]], None, "価格", None),
+        ([["確認日", "商品ID", "価格"], ["2026/01/01", 1, 10]], None, "商品ID", 2),
+        ([["確認日", "商品ID", "価格"], ["2026/01/01", "001", "10,000"]], None, "価格", 2),
+        ([["確認日", "商品ID", "価格"], ["2026/01/01", "001", 0]], None, "価格", 2),
+        (
+            [["確認日", "商品ID", "価格"], ["2026/01/01", "001", 10], ["2026/01/01", "001", 11]],
+            None,
+            "確認日・商品ID",
+            3,
+        ),
+        ([["確認日", "商品ID", "価格"], ["wrong date", "001", 10]], None, "確認日", 2),
+        (None, [["商品ID", "商品名"], ["001", "A"], ["001", "B"]], "商品ID", 3),
     ],
 )
 def test_bad_data_fails_without_silent_discard(history, products, bad_column, bad_row):
     # Note: missing '備考' is permitted, because it is optional.
     with pytest.raises(WorkbookValidationError) as caught:
         parse_batch_values(payload(history=history, products=products))
-    assert any(i.column == bad_column and (bad_row is None or i.row == bad_row) for i in caught.value.issues)
+    assert any(
+        i.column == bad_column and (bad_row is None or i.row == bad_row)
+        for i in caught.value.issues
+    )
 
 
 def test_blank_or_duplicate_headers_caught():

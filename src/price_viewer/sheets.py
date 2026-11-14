@@ -36,7 +36,9 @@ def _authorized_session() -> Any:
         from google.auth.exceptions import DefaultCredentialsError
         from google.auth.transport.requests import AuthorizedSession
     except ImportError as error:
-        raise SheetAccessError("google-authが不足しています。uv sync --lockedを実行してください") from error
+        raise SheetAccessError(
+            "google-authが不足しています。uv sync --lockedを実行してください"
+        ) from error
 
     try:
         credentials, _ = google.auth.default(scopes=[READ_ONLY_SCOPE])
@@ -52,7 +54,9 @@ def _rows_to_frame(payload: Mapping[str, Any], sheet: str) -> pd.DataFrame:
     if not isinstance(rows, list) or not rows:
         raise WorkbookValidationError([ValidationIssue(sheet, 1, "見出し", "シートが空です")])
     if not isinstance(rows[0], list):
-        raise WorkbookValidationError([ValidationIssue(sheet, 1, "見出し", "表形式を確認してください")])
+        raise WorkbookValidationError(
+            [ValidationIssue(sheet, 1, "見出し", "表形式を確認してください")]
+        )
     headers = rows[0]
     if any(not isinstance(name, str) or not name.strip() for name in headers):
         raise WorkbookValidationError([ValidationIssue(sheet, 1, "見出し", "列名が空です")])
@@ -89,7 +93,9 @@ def load_price_sheet(
     """
     sheet_id = (spreadsheet_id or os.getenv("GOOGLE_SHEET_ID", "")).strip()
     if not sheet_id:
-        raise SheetAccessError("GOOGLE_SHEET_IDが未設定です。共有シートのURLからIDを確認してください")
+        raise SheetAccessError(
+            "GOOGLE_SHEET_IDが未設定です。共有シートのURLからIDを確認してください"
+        )
     if not re.fullmatch(r"[A-Za-z0-9_-]{15,200}", sheet_id):
         raise SheetAccessError("GOOGLE_SHEET_IDの形式が不正です（URLではなくIDのみ指定）")
 
@@ -107,7 +113,9 @@ def load_price_sheet(
             response = client.get(url, params=params, timeout=20)
         except Exception as error:
             # Do not include a secret-bearing exception's request headers/body.
-            raise SheetAccessError("Google Sheets APIへの接続に失敗しました。ネットワークを確認してください") from error
+            raise SheetAccessError(
+                "Google Sheets APIへの接続に失敗しました。ネットワークを確認してください"
+            ) from error
         status = response.status_code
         if status == 200:
             try:
@@ -125,12 +133,16 @@ def load_price_sheet(
                 "Google認証または閲覧権限が不足しています。サービスアカウントを閲覧者として共有してください"
             )
         if status == 404:
-            raise SheetAccessError("スプレッドシートが見つかりません。IDと閲覧権限を確認してください")
+            raise SheetAccessError(
+                "スプレッドシートが見つかりません。IDと閲覧権限を確認してください"
+            )
         if status == 400:
             raise SheetAccessError(
                 "Google Sheets APIがシート名・範囲を認識できません。『価格履歴』『商品マスタ』を確認してください"
             )
         if status == 429:
-            raise SheetAccessError("Google Sheets APIの読み取り上限に達しました。時間をおいて実行してください")
+            raise SheetAccessError(
+                "Google Sheets APIの読み取り上限に達しました。時間をおいて実行してください"
+            )
         raise SheetAccessError(f"Google Sheets APIがエラーを返しました（HTTP {status}）")
     raise AssertionError("unreachable")
