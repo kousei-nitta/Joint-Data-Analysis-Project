@@ -15,7 +15,7 @@
 ## 1タスクの流れ
 1. 作業開始：`main` と最新ドキュメントを確認。Issue/依頼で目的と完了条件を決める。
 2. ブランチ：`feat/`、`fix/`、`chore/` のいずれか。直接mainへコミットしない。
-3. 実装：既存Excel原本の保全、テストデータの明示、機能とドキュメントの同期。
+3. 実装：非公開Googleシートを読み取り専用で扱い、架空テストデータの明示、機能とドキュメントの同期。
 4. 検証：`uv sync --locked`、`uv run --locked ruff check .`、`uv run --locked ruff format --check .`、`uv run --locked python scripts/check_environment.py`。テスト追加時は `uv run --locked pytest`。
 5. PR：目的/変更点/実行したチェック/未検証点/次のタスク/設計上の判断を記載。
 6. 人間がレビューして承認したときのみmainにマージ。AIは勝手にマージしない。
@@ -26,7 +26,7 @@
 外部のAIにファイルアクセス権がない場合は、上記ファイルと対象コードを明示的に提供する。機密をAIへ貼り付けない。
 
 ## 役割（2人・各週5〜10時間の想定）
-- データ/仮説担当：店舗候補と出所検証、Excel入力内容の確認、分析定義、出力レビュー。
+- データ/仮説担当：店舗候補と出所検証、Googleシート入力内容の確認、分析定義、出力レビュー。
 - 実装担当：Python処理、テスト、Git/CI、再現可能性の維持。
 - 両名：仕様・ADR・PRをレビュー。経験差があっても成果物単位で分業する。
 
@@ -35,7 +35,7 @@
 
 ## 自律的な検証と人間の承認
 
-セッション内でAIが反復的にテスト・改善する詳細は[LOOP_ENGINEERING.md](LOOP_ENGINEERING.md)を参照。自動テスト合格はmainマージの承認を代替しない。入力担当者のExcel更新も承認後に別PRで検証する。OS別手順は[OS_SETUP.md](OS_SETUP.md)。
+セッション内でAIが反復的にテスト・改善する詳細は[LOOP_ENGINEERING.md](LOOP_ENGINEERING.md)を参照。自動テスト合格はmainマージの承認を代替しない。入力担当者のGoogleシート編集はGitのPR対象ではなく、仕様変更とコード変更のみ承認ゲートで管理する。OS別手順は[OS_SETUP.md](OS_SETUP.md)。
 
 ## 2026-11-14: Private Google Sheet workflow
 - Spreadsheet editors work directly in the restricted Google Sheet, not Git. The application has read-only access via a service account. Never upload Google credentials or private prices to PRs.
