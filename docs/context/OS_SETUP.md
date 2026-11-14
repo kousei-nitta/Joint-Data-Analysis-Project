@@ -15,10 +15,13 @@ uv run --locked pytest -q
 uv run --locked python scripts/run_demo.py
 ```
 
-Google Cloudで作成した**秘密鍵JSONはリポジトリの外**、例えば `$HOME\private-keys\price-reader.json` に保存します。実際のパスとシートIDへ置き換えて、**このPowerShell画面だけ**に環境変数を設定します：
+Google Cloud CLIを[公式手順](https://cloud.google.com/sdk/docs/install)でインストールし、各開発者本人のGoogleアカウントで以下を実行。事前に管理者がSheets API / IAM Credentials APIを有効にし、サービスアカウント単位のToken Creator権限を付与します。秘密鍵JSONは**作成しません**。
 
 ```powershell
-$env:GOOGLE_APPLICATION_CREDENTIALS = "$HOME\private-keys\price-reader.json"
+Remove-Item Env:GOOGLE_APPLICATION_CREDENTIALS -ErrorAction SilentlyContinue
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+gcloud auth application-default login --impersonate-service-account=sheet-price-reader@YOUR_PROJECT_ID.iam.gserviceaccount.com
 $env:GOOGLE_SHEET_ID = "スプレッドシートURLのID部分"
 uv run --locked python scripts/analyze_sheet.py
 uv run --locked streamlit run src/price_viewer/app.py
@@ -41,10 +44,13 @@ uv run --locked pytest -q
 uv run --locked python scripts/run_demo.py
 ```
 
-認証JSONをリポジトリ**外**のフォルダに保存します。例：`$HOME/private-keys/price-reader.json`。実際のパスとIDへ置き換える：
+Google Cloud CLIを[公式手順](https://cloud.google.com/sdk/docs/install)でインストールし、各開発者本人のGoogleアカウントで以下を実行。事前に管理者がSheets API / IAM Credentials APIを有効にし、サービスアカウント単位のToken Creator権限を付与します。
 
 ```bash
-export GOOGLE_APPLICATION_CREDENTIALS="$HOME/private-keys/price-reader.json"
+unset GOOGLE_APPLICATION_CREDENTIALS
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+gcloud auth application-default login --impersonate-service-account=sheet-price-reader@YOUR_PROJECT_ID.iam.gserviceaccount.com
 export GOOGLE_SHEET_ID="スプレッドシートURLのID部分"
 uv run --locked python scripts/analyze_sheet.py
 uv run --locked streamlit run src/price_viewer/app.py
@@ -58,5 +64,5 @@ VS Codeインタープリター：`.venv/bin/python`（Cmd+Shift+P → Python: S
 - `uv run --locked python scripts/analyze_sheet.py` は非公開シートを読み取り、`outputs/analysis/` に商品別HTML/CSVを保存します。
 - Streamlitはデフォルトで架空デモ。実データを見たいときだけ入力元を切替。シートの変更から画面への反映は最大5分程度（「最新のデータを再取得」で即時更新）。
 - 商品IDはSheetsの列を「書式なしテキスト」にして入力し、`001`を保持。価格は数値、日本円で記録。確認日は有効な日付。
-- 認証JSONや秘密情報を他人に送らず、GitHub・PR・Issueに添付しない。サービスアカウントには**閲覧者**権限のみ与えます。
+- 長期鍵JSONは作成せず、ローカルADCファイルやトークンを他人に送らず、GitHub・PR・Issueに添付しない。サービスアカウントには**閲覧者**権限のみ与えます。
 - 403は権限、404はID/共有状態、400はタブ名、入力エラーは指定した行/列を確認。Pythonやuvが認識されない場合は個別インストールを確認。

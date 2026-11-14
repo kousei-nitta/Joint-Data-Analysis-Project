@@ -40,3 +40,6 @@
 ## 2026-11-14: Private Google Sheet workflow
 - Spreadsheet editors work directly in the restricted Google Sheet, not Git. The application has read-only access via a service account. Never upload Google credentials or private prices to PRs.
 - Code, contract tests and design documents remain in GitHub branches/PRs with human merge gates. Read `docs/adr/0004-private-google-sheets-source.md` for the replacement of Excel as canonical source.
+
+## 個人別キーレス認証の運用
+追加メンバーには、特定SAだけのToken Creatorを付与する。脱退時は各人のToken Creatorとシート共有を外す。詳細は`KEYLESS_AUTH.md`、ADR0005。

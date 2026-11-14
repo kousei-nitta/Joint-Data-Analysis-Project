@@ -47,3 +47,9 @@
 - Do not commit a spreadsheet ID, Google service-account JSON key, personal tokens or actual market observations. Only fake fixtures are used in CI.
 - Local Sheets integration uses ADC with read-only scope. See `docs/context/GOOGLE_SHEETS_SETUP.md` and `OS_SETUP.md` (separate Windows/macOS instructions).
 - PR approval gates and costs are in `docs/context/LOOP_ENGINEERING.md`. Humans decide on merging to main.
+
+## 現行の認証方針（ADR0005、2026-11-14）
+- 非公開シートの認証は**長期秘密鍵を使わないADC**を標準とする。開発PCはGoogle Cloud CLI + 個人アカウント + SA単位のToken Creator権限によるなりすまし。
+- Pythonコードでは秘密鍵型サービスアカウントADCを拒否する。ローカルADC/トークン/シートIDをPRやGitへ出さない。
+- 将来のGoogle Cloud実行では付属SA、GitHub Actionsなど外部OIDC環境では必要な場合のみWIFを使用（人間の承認が必要）。
+- [KEYLESS_AUTH.md](docs/context/KEYLESS_AUTH.md)、[OS_SETUP.md](docs/context/OS_SETUP.md)を参照。

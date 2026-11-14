@@ -1,6 +1,6 @@
 # ADR 0004: 非公開Googleスプレッドシートを価格データの正本にする
 
-- Status: Proposed（本PRを人間がマージした時点でAccepted）
+- Status: Accepted（Google Sheets正本を採用）。認証JSONの部分はADR0005によって置換予定
 - Date: 2026-11-14
 
 ## Context
