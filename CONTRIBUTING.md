@@ -60,3 +60,9 @@ uv run --locked python scripts/run_demo.py
 ```
 
 データ契約を変更したPRでは、サンプルテストと`docs/context/DATA_CONTRACT.md`を併せて変更します。反復開発・承認ゲートは`docs/context/LOOP_ENGINEERING.md`、Windows/macOS別の手順は`docs/context/OS_SETUP.md`を参照してください。
+
+## Google Sheets as the data source
+- Share the private Google Sheet only with named editors and the service account as Viewer; there is no need to commit or push data updates.
+- Follow `docs/context/GOOGLE_SHEETS_SETUP.md` for authentication and `docs/context/OS_SETUP.md` for the separate OS commands.
+- Run `uv run --locked pytest -q` and `uv run --locked python scripts/run_demo.py` offline; these never require real Google credentials.
+- Changes to data format, API quota or billing assumptions must be reviewed in the PR and documented in an ADR.

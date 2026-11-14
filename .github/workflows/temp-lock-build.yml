@@ -1,0 +1,22 @@
+name: TEMP generate updated uv lockfile
+on:
+  push:
+    branches: [feat/google-sheets-private-source]
+permissions:
+  contents: read
+jobs:
+  generate-lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.13.5"
+      - run: uv python install 3.12.11
+      - run: uv lock --python 3.12.11
+      - name: PRINT_UPDATED_LOCKFILE_FOR_REVIEW
+        run: |
+          echo 'BEGIN_LOCK_CONTENT'
+          cat uv.lock
+          echo 'END_LOCK_CONTENT'

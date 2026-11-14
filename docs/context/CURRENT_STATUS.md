@@ -1,32 +1,26 @@
-# Current status / チェックポイント
+# 現在地 / セッション引き継ぎ
 
-更新日：2026-11-07
-対象：`feat/excel-price-analysis-mvp` **レビュー待ちブランチ**（`main`にはユーザー承認後に反映）。
+更新：2026-11-14
 
-## 変更内容（このブランチ）
+## この移行PRで実施したこと
 
-- 元Excel `product_prices.xlsx` は未変更。別の入力担当者が実データを更新してpushする予定。
-- 2シート読み込み、行番号付きの入力検証、日付順の価格変化率と期間集計を実装。
-- メモリ内の架空Excel（3商品・各5件）から、HTMLグラフ/CSVを生成するデモCLI、入力済みExcelのバッチ処理CLIとStreamlit画面を追加。
-- テスト（データ読込・入力異常・グラフ・UIスモーク）を追加、CIにpytestとデモ生成を組み込む。
-- 金額は日本円。Mac/Windows別ガイドとPDCA型の承認ゲートを追加。
+- 前回のExcel価格分析PR #3がmainにマージされていることを確認。
+- Google Sheets API（非公開・読み取り専用）からの取得に変更。シートタブは`価格履歴`と`商品マスタ`。値の検証・グラフ化は前回実装を再利用。
+- `product_prices.xlsx` を**今後のGit追跡対象から除外**。以前のGit履歴に存在するため、過去のファイルが機微情報なら履歴削除は**別途相談・承認**が必要。
+- `GOOGLE_APPLICATION_CREDENTIALS` / `GOOGLE_SHEET_ID` のローカル設定とWindows/macOSの操作手順を整備。
+- データ入力担当者はGoogleシートを編集するだけ。Git pushは不要。CIのGoogle認証は設けず、モック・架空データでテスト。
+- Google Sheets API標準枠は現在追加料金なし。ただし2026年後半以降の枠超過課金予定があるため、永続無料ではない。
 
-## 検証の状態
+## 次の人間の承認ゲート
 
-- ローカル：pandas/openpyxl/Plotly/pytestを使い架空データの読込・集計・HTML/CSVをテスト。17件成功、Streamlit未導入のためUIテスト1件はローカルでskip。
-- GitHub Actions（Python 3.12.11 / uv 0.13.5）で **Ruff lint、format、環境検査、pytest 18件（UIスモーク含む）、HTML/CSV出力のすべてが成功**（コミット `7029850` 時点）。
-- 実装改善の履歴：不正xlsxのBadZipFile例外処理、テストのimport経路、Ruff整形を修正し再検証した。
-- 実Excelのデータ行と現行仕様の照合は未実施。既存Excelのシート名/列は `docs/plan.md` の記述に依拠する。
+- このPRのコード差分、CI、旧Excel追跡解除、認証・費用方針をレビュー。mainへのマージは人間のみ。
+- [GOOGLE_SHEETS_SETUP.md](GOOGLE_SHEETS_SETUP.md)の手順に従い人間がGoogle Cloudプロジェクト/API/サービスアカウント/プライベートシートを作成し、シートへの共有設定を行う。JSONキーはリポジトリ外で管理。
+- 実シートとの接続テストは人間による認証設定後に実施し、エラー時は**JSON・ID・実データをPRに貼らず**症状のみ共有。
 
-## 次に必要な人間の承認（Gate 2）
+## まだしていないこと
 
-- PRの差分・デモ・CIの検証と、JPY前提・重複/0円エラーの仕様をレビューする。
-- よければユーザー自身がmainにマージする。AIはmergeしない。
+- 実際の非公開シートからの読み取り検証（ユーザーのGoogle側設定が必要）。
+- 店舗別・商品状態別の拡張、中国景気指標としての妥当性検証、モデル学習。
+- 過去Git履歴のデータ完全削除。Cloud Billing利用・対外公開。
 
-## Excel入力担当者のpush後（Gate 3、別タスク）
-
-- 作業を開始する時点のmainの最新版を再確認し、入力済みExcelの実際のシート構造と型を検証。
-- 必要な列追加や値の修正を推測で行わず、別ブランチ・PRで提案する。
-- その後、精度・相関・中国景気との先行性の研究に拡張する。
-
-別AIへの引き継ぎは `HANDOFF_TEMPLATE.md` と `LOOP_ENGINEERING.md` を使う。
+依頼が別AIに引き継がれる場合、`AGENTS.md`、本書、`DATA_CONTRACT.md`、`GOOGLE_SHEETS_SETUP.md`、CI結果と対象PRを読む。

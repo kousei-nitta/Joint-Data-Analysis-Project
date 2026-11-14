@@ -1,4 +1,4 @@
-"""Smoke-test the default demo UI on CI, where Streamlit is installed."""
+"""Render the offline demo UI in CI without any Google credentials."""
 
 from pathlib import Path
 
@@ -12,5 +12,5 @@ def test_demo_mode_renders_without_exception():
     app_path = Path(__file__).resolve().parents[1] / "src" / "price_viewer" / "app.py"
     app = AppTest.from_file(str(app_path), default_timeout=20).run()
     assert not app.exception
-    assert any("Excel商品価格" in title.value for title in app.title)
+    assert any("商品価格の推移分析" in title.value for title in app.title)
     assert len(app.metric) == 3

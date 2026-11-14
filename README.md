@@ -1,10 +1,20 @@
 # Joint-Data-Analysis-Project
 
-**Excelに手入力した商品価格をPythonで検証・分析し、日付別の価格推移をグラフにするローカルデモ**です。現段階では中国景気の予測AIではありません。分析ロジックは将来的なオルタナティブ指標研究の基盤になります。
+非公開の**Googleスプレッドシート**で価格データを共同編集し、Pythonが **Google Sheets API（読み取り専用）** から取得して、商品価格の推移グラフ・CSV・HTMLを生成します。入力データをGitHubへpushする必要はありません。
 
-## 今すぐ試す
+> 現時点で提供するのは**価格推移の分析**です。中国景気や不動産バブルの予測AIの有効性はまだ検証していません。
 
-`uv` 0.13.5 と Python 3.12.11 を使用します。Windows と macOS の詳しい手順は [OS別セットアップ](docs/context/OS_SETUP.md) を参照してください。
+## データ管理の原則
+
+- データの正本は**閲覧・編集権限を指定したGoogleスプレッドシート**です。コードだけGitHubで管理します。
+- Googleシートの「価格履歴」（`確認日, 商品ID, 価格, 備考`）と「商品マスタ」（`商品ID, 商品名`）の列構成を維持します。**商品IDは文字列**（例：`001`）、価格は数値の**日本円**、確認日は日付で入力してください。
+- 認証はGoogleのApplication Default Credentials（ADC）を使用し、`spreadsheets.readonly` 権限のみを要求します。スプレッドシートはサービスアカウントに「閲覧者」として共有します。
+- Google認証JSON、シートID、実測データをGitHubへコミットしません。出力は`outputs/`に保存され、Git管理対象外です。
+- **これまで追跡していた `product_prices.xlsx` は今回の移行PRで追跡対象から削除**しています。過去のGitコミット履歴からは消えない点に注意してください。
+
+## すぐに試す（Google認証・インターネット不要）
+
+Python `3.12.11` と uv `0.13.5` を使用。詳細は[Windows/macOS別の操作手順](docs/context/OS_SETUP.md)。
 
 ```bash
 uv python install 3.12.11
@@ -13,30 +23,31 @@ uv run --locked python scripts/run_demo.py
 uv run --locked streamlit run src/price_viewer/app.py
 ```
 
-実データを画面なしでグラフ・CSVに変換する場合（Excelが入力済みの場合のみ）：
+画面 `http://127.0.0.1:8501` の初期選択は「架空デモデータ」です。3商品×5回の**架空価格**を分析でき、実在の取引情報は含みません。
+
+## 非公開Googleスプレッドシートとの接続
+
+1. [Google Cloudの初期設定](docs/context/GOOGLE_SHEETS_SETUP.md) に従い、Google CloudプロジェクトとGoogle Sheets APIを用意。
+2. サービスアカウントを作成して、目的のGoogleスプレッドシートをそのアカウントへ**閲覧者**として共有。
+3. Google認証JSONはGit管理外の個人PC内に保存し、`GOOGLE_APPLICATION_CREDENTIALS` に**フルパス**を設定。スプレッドシートのIDを `GOOGLE_SHEET_ID` に設定。
+4. Streamlit画面の「非公開Googleスプレッドシート」を選ぶか、下記コマンドでHTML/CSVを出力。
 
 ```bash
-uv run --locked python scripts/analyze_workbook.py --excel product_prices.xlsx
+uv run --locked python scripts/analyze_sheet.py
 ```
 
-`http://127.0.0.1:8501` を開くと、まず**架空データ**の価格推移グラフが表示されます。データ入力担当者のExcel完成後には「Excelをアップロード」または「リポジトリのExcel」から読み込めます。xlsx原本への書き込みは行いません。
+`GOOGLE_SHEET_ID` は共有シートのURL `https://docs.google.com/spreadsheets/d/<ここがID>/edit` のID部分です。**環境変数のみで管理**し、GitHubには書かないでください。
+
+APIからの読み取りは一度に「価格履歴」「商品マスタ」の両シートを `values.batchGet` で取得します。Streamlitは5分間キャッシュし、手動で更新できます。日付・商品ID・価格の検証結果を確認してから分析します。シートへの書き込みはありません。
 
 ## できること
 
-- `product_prices.xlsx` の「価格履歴」「商品マスタ」の2シートを読み取り、商品IDを文字列のまま照合。
-- 空行の無視、欠落・不正日付・不正価格・未登録商品ID・重複の**行番号付き**エラー表示。
-- 商品と期間の選択、観測価格の折れ線グラフ、前回比（円・%）と期間の変化率。
-- グラフをHTML、分析データをCSVとしてローカル保存。`outputs/` はGit追跡外。
-- CIで架空のExcelから分析結果までをテスト。実在の商品・取引価格はテストに使用しません。
+- 商品別・期間別に価格と前回比・変化率を算出し、折れ線グラフを表示。
+- 日付不正・未登録ID・重複・不正価格を、Googleシートの行番号と列名で報告。空欄を勝手に0円にしません。
+- CSV/HTML出力（ローカルのみ）。価格の穴埋め・為替補正・中国景気予測は未実装。
+- 架空データを使ったネットワーク不要の自動テスト。CIには実際のGoogle認証情報を登録しません。
 
-## 試験運用の制約
-
-- 金額は当面**日本円（JPY）**。税の扱い、商品状態、店舗の識別は現在のExcel列に存在せず未確定。
-- 同一商品ID・同じ日の複数レコードは店舗差を識別できないためエラー。勝手な平均・値の補完をしません。
-- デモは架空データであり、中国景気との因果性・先行指標としての精度は未検証。
-- 新しい商品価格がGitHubにpushされた後、**別PRで実Excelとの整合性を確認する**予定です。
-
-## 開発・テスト
+## 開発・レビュー
 
 ```bash
 uv run --locked python scripts/check_environment.py
@@ -45,8 +56,4 @@ uv run --locked ruff check .
 uv run --locked ruff format --check .
 ```
 
-対象コード: `src/price_viewer/`、出力デモ: `scripts/run_demo.py`、テスト: `tests/`。既存の `product_prices.xlsx` は更新しません。
-
-## AIと人間が共通の設計履歴を使う
-
-まず [AGENTS.md](AGENTS.md) を読み、[共有設計](docs/context/ARCHITECTURE.md)、[Excelデータ契約](docs/context/DATA_CONTRACT.md)、[分析MVP仕様](docs/context/ANALYSIS_MVP_SPEC.md) を参照してください。[反復開発と承認ゲート](docs/context/LOOP_ENGINEERING.md)、[現在地](docs/context/CURRENT_STATUS.md)、[作業引き継ぎ](docs/context/HANDOFF_TEMPLATE.md)、[判断の履歴](docs/adr/) によって、ChatGPT・Claude・ローカルLLMに依存せず作業を引き継げます。[貢献ガイド](CONTRIBUTING.md) も参照してください。
+[AGENTS.md](AGENTS.md)、[共通のデータ契約](docs/context/DATA_CONTRACT.md)、[アーキテクチャ](docs/context/ARCHITECTURE.md)、[反復開発・承認ゲート](docs/context/LOOP_ENGINEERING.md)、[現状](docs/context/CURRENT_STATUS.md)を参照。ChatGPT・Claude・ローカルLLMのチャット履歴に依存せず作業を再開できます。

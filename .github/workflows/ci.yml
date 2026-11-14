@@ -1,4 +1,4 @@
-name: Excel price analysis checks
+name: Google Sheets price analysis checks
 
 on:
   pull_request:
@@ -29,13 +29,13 @@ jobs:
         run: uv run --locked ruff check .
       - name: Check formatting
         run: uv run --locked ruff format --check .
-      - name: Check Excel and plotting environment
+      - name: Offline environment check (no API calls)
         run: uv run --locked python scripts/check_environment.py
-      - name: Run unit and UI smoke tests
+      - name: Unit and offline UI tests (no Google credentials)
         run: uv run --locked pytest -q
-      - name: Generate demo output from synthetic Excel
+      - name: Generate fictional demo outputs
         run: uv run --locked python scripts/run_demo.py --output-dir outputs/ci-demo
-      - name: Confirm generated files
+      - name: Confirm demo files exist
         run: |
           test -f outputs/ci-demo/demo_001.html
           test -f outputs/ci-demo/demo_001.csv

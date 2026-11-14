@@ -36,3 +36,7 @@
 ## 自律的な検証と人間の承認
 
 セッション内でAIが反復的にテスト・改善する詳細は[LOOP_ENGINEERING.md](LOOP_ENGINEERING.md)を参照。自動テスト合格はmainマージの承認を代替しない。入力担当者のExcel更新も承認後に別PRで検証する。OS別手順は[OS_SETUP.md](OS_SETUP.md)。
+
+## 2026-11-14: Private Google Sheet workflow
+- Spreadsheet editors work directly in the restricted Google Sheet, not Git. The application has read-only access via a service account. Never upload Google credentials or private prices to PRs.
+- Code, contract tests and design documents remain in GitHub branches/PRs with human merge gates. Read `docs/adr/0004-private-google-sheets-source.md` for the replacement of Excel as canonical source.

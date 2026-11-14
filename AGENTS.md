@@ -41,3 +41,9 @@
 - 価格は当面JPY。既存の`product_prices.xlsx`は入力担当者の作業が完了するまで原本不変。
 - `docs/context/LOOP_ENGINEERING.md`のPDCA・承認ゲートを守り、テスト失敗時は同じ作業ブランチで改善と再テストを行う。
 - MacとWindowsの実行手順は`docs/context/OS_SETUP.md`に分けて記載する。実装前に`docs/context/ANALYSIS_MVP_SPEC.md`を確認。
+
+## Current input source (2026-11-14)
+- The canonical input is a **restricted-access Google Sheet**, not the prior tracked Excel. See `docs/adr/0004-private-google-sheets-source.md` and `docs/context/DATA_CONTRACT.md`.
+- Do not commit a spreadsheet ID, Google service-account JSON key, personal tokens or actual market observations. Only fake fixtures are used in CI.
+- Local Sheets integration uses ADC with read-only scope. See `docs/context/GOOGLE_SHEETS_SETUP.md` and `OS_SETUP.md` (separate Windows/macOS instructions).
+- PR approval gates and costs are in `docs/context/LOOP_ENGINEERING.md`. Humans decide on merging to main.
